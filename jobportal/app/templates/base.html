@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+{% load static %}
+{% load crispy_forms_tags %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Home Page {% endblock title %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/boot.css' %}">
+</head>
+<body>
+{% if not user.is_authenticated %}
+<nav class="navbar navbar-expand-lg navbar-light bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand text-white" href="{% url 'Home' %}">Jobs</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link active with-line" aria-current="page" href="{% url 'SignUpSeeker' %}">Sign Up For Job
+                Seeker </a>
+          </li>
+        <li class="nav-item">
+          <a class="nav-link active with-line" aria-current="page" href="{% url 'SignUpRecruiter' %}">Sign Up For Job
+              Recruiter</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'Login' %}">Sign In</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+
+
+{% block content %}
+
+{% endblock content %}
+</body>
+</html>

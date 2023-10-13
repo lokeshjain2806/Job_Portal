@@ -1,0 +1,15 @@
+.nav-link {
+  color: white !important;
+}
+
+.nav-link:hover {
+  text-decoration: underline;
+  color: blue !important;
+}
+
+.with-line {
+    border-right: 2px solid #fff;
+    padding-right: 10px;
+    margin-right: 10px;
+
+}
