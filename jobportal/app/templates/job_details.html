@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %} Show Job {% endblock title %}
+{% block content %}
+    <div class="container">
+        <h1 class="text-center">{{ job.job_title }}</h1>
+        <p><strong>Company:</strong> {{ job.company_name }}</p>
+        <p><strong>Location:</strong> {{ job.location }}</p>
+        <p><strong>Job Type:</strong> {{ job.get_job_type_display }}</p>
+        <p><strong>Industry Category:</strong> {{ job.get_industry_category_display }}</p>
+        <p><strong>Salary:</strong> ${{ job.salary }}</p>
+        <p><strong>Job Requirements:</strong> {{ job.job_requirements }}</p>
+        <p><strong>Education Requirements:</strong> {{ job.education_requirements }}</p>
+        <p><strong>Experience Level:</strong> {{ job.experience_level }}</p>
+        <p><strong>Contact Information:</strong> {{ job.contact_information }}</p>
+        <p><strong>Benefits:</strong> {{ job.benefits }}</p>
+        <p><strong>Skills and Qualities:</strong> {{ job.skills_and_qualities }}</p>
+        <a href="{% url 'JobApplicationCreateView' job_id=job.id %}" class="btn btn-primary">Apply</a>
+    </div>
+{% endblock content %}

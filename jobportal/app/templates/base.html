@@ -1,44 +1,474 @@
 <!DOCTYPE html>
 {% load static %}
-{% load crispy_forms_tags %}
-<html lang="en">
+{%load crispy_forms_tags %}
+
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Home Page {% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="stylesheet" href="{% static 'css/boot.css' %}">
+    <style>
+            .bg-image {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        background-image: url('{% static 'images/krmu.jpg' %}');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center center;
+        }
+
+        .bg-image::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: inherit;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+            opacity: 0.5;
+            z-index: -1;
+        }
+        .login{
+            margin-top:17%;
+        }
+        @media screen and (max-width: 600px) {
+            .login {
+                margin-top: 0px;
+            }
+        }
+        .bg-image .container {
+            position: relative;
+            z-index: 1;
+        }
+            .footer-below{
+            text-align:center;
+            font-size: 30px;
+            }
+        @media screen and (max-width: 600px) {
+        .footer-below{
+            text-align:center;
+            font-size: 18px;
+            }
+        }
+        .dropdown-item:hover {
+            background-color: #007bff;
+            color: white;
+          }
+    </style>
 </head>
-<body>
-{% if not user.is_authenticated %}
-<nav class="navbar navbar-expand-lg navbar-light bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand text-white" href="{% url 'Home' %}">Jobs</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link active with-line" aria-current="page" href="{% url 'SignUpSeeker' %}">Sign Up For Job
-                Seeker </a>
-          </li>
-        <li class="nav-item">
-          <a class="nav-link active with-line" aria-current="page" href="{% url 'SignUpRecruiter' %}">Sign Up For Job
-              Recruiter</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'Login' %}">Sign In</a>
-        </li>
-      </ul>
-    </div>
+<body style="background-color: beige;">
+
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+    <a class="navbar-brand me-5 ms-3" href="{% url 'Home' %}">Jobs</a>
+    <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+        {% if not user.is_authenticated %}
+         <ul class="navbar-nav mr-auto mt-2 mt-lg-0 bd-navbar-nav flex-row">-->
+              <li class="nav-item">
+                  <a class="nav-link active" href="{% url 'About' %}"><button type="button"
+                                                    class="btn btn-outline-primary border-white text-white">
+                      About</button></a>
+              </li>
+        </ul>
+        <ul class="navbar-nav mt-2 mt-lg-0 bd-navbar-nav flex-row right" style="position: absolute; right: 6%;">
+    <li class="nav-item">
+        <div style="display: flex; flex-direction: row;">
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0 bd-navbar-nav flex-row">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'Login' %}"><button type="button"
+                                                        class="btn btn-outline-primary border-white text-white">Sign In
+                    </button></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0 bd-navbar-nav flex-row">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'SignUpRecruiter' %}"><button type="button"
+                                                        class="btn btn-outline-primary border-white text-white">Sign Up For Job Recruiter</button></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0 bd-navbar-nav flex-row">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'SignUpSeeker' %}"><button type="button"
+                                                        class="btn btn-outline-primary border-white text-white">Sign Up For Job Seeker</button></a>
+                </li>
+            </ul>
+
+        </div>
+    </li>
+</ul>
+        {% endif %}
+
+
+
+        {% if user.is_authenticated %}
+        {% if perms.app.can_view_recruiter_custom %}
+             <ul class="navbar-nav mr-auto mt-2 mt-lg-0 bd-navbar-nav flex-row">
+                  <li class="nav-item">
+                      <a class="nav-link active" href="{% url 'create-job' %}"><button type="button"
+                                                        class="btn btn-outline-primary border-white text-white">
+                          Post Any Job</button></a>
+                  </li>
+             </ul>
+             <ul class="navbar-nav mr-auto mt-2 mt-lg-0 bd-navbar-nav flex-row">
+                  <li class="nav-item">
+                      <a class="nav-link active" href="{% url 'user-jobs' %}"><button type="button"
+                                                        class="btn btn-outline-primary border-white text-white">
+                          Show Posted Jobs</button></a>
+                  </li>
+             </ul>
+
+        {% endif %}
+        <ul class="navbar-nav mt-2 mt-lg-0 bd-navbar-nav flex-row right" style="position: absolute; right: 6%;">
+    <li class="nav-item">
+        <div style="display: flex; flex-direction: row;">
+            <div class="text-center text-lg-start me-3">
+                <div style="color:white; font-size: 25px;">
+                    <a href="{% url 'Notifications' %}">
+                        <img style="height: 4vh; cursor: pointer;" src="{% static 'images/notification.png' %}"><span
+                            class="badge badge-success">
+                    {{notify_count}}</span></a>
+                    </div>
+
+            </div>
+            <div class="text-center text-lg-start me-3">
+                <div style="color:white; font-size: 25px">{{request.user}}</div>
+            </div>
+            <div class="dropdown">
+                <img src="{% static 'images/profile.png' %}" alt="Image" id="dropdownMenuButton"
+                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="height: 4vh; cursor: pointer;">
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="{% url 'Profile' %}">Profile</a>
+                    <a class="dropdown-item" href="{% url 'Logout' %}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </li>
+</ul>
+        {% endif %}
+        {% if perms.app.can_view_job_seekers_custom %}
+        <ul class="navbar-nav mr-auto mt-2 mt-lg-0 bd-navbar-nav flex-row">
+                  <li class="nav-item">
+                      <a class="nav-link active" href="{% url 'show-jobs' %}"><button type="button"
+                                                        class="btn btn-outline-primary border-white text-white">
+                          Show Jobs</button></a>
+                  </li>
+             </ul>
+             <ul class="navbar-nav mr-auto mt-2 mt-lg-0 bd-navbar-nav flex-row">
+                  <li class="nav-item">
+                      <a class="nav-link active" href="{% url 'job-applications-list' %}"><button type="button"
+                                                        class="btn btn-outline-primary border-white text-white">
+                          Check Applied Jobs</button></a>
+                  </li>
+             </ul>
+        {% endif %}
   </div>
-</nav>
-{% endif %}
+    </nav>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 {% block content %}
 
+
+    {% if not user.is_authenticated %}
+
+<div class="container mt-5 shadow">
+    {% if jobs %}
+    <h1 class="text-center mb-4 display-4">Jobs</h1>
+    <div class="job-rotation-container" id="jobRotationContainer">
+        <div class="job-cards">
+            {% for job in jobs %}
+                <div class="job-card">
+                <h5 class="card-title text-center bg-primary text-white p-2">{{ job.job_title }}</h5>
+                <p class="card-subtitle mb-2"><strong>Company Name: </strong>  {{ job.company_name }}</p>
+                <p><strong>Location:</strong> {{ job.location }}</p>
+                <p><strong>Job Type:</strong> {{ job.get_job_type_display }}</p>
+                <p><strong>Industry:</strong> {{ job.get_industry_category_display }}</p>
+                <p><strong>Salary:</strong> Rs.{{ job.salary }}</p>
+                <p><strong>Requirements:</strong> {{ job.job_requirements }}</p>
+                <p><strong>Education Requirements:</strong> {{ job.education_requirements }}</p>
+                <p><strong>Experience Level:</strong> {{ job.experience_level }}</p>
+                <p><strong>Contact Information:</strong> {{ job.contact_information }}</p>
+                <p><strong>Benefits:</strong> {{ job.benefits }}</p>
+                <p><strong>Skills and Qualities:</strong> {{ job.skills_and_qualities }}</p>
+                <div class="d-grid gap-2">
+                    {% if job.id in applied_jobs %}
+                        <span class="text-success"> Already Applied</span>
+                    {% else %}
+                        <a href="{% url 'Login' %}" class="btn btn-primary">Apply</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+    <marquee direction="left" scrollamount="3">
+        <h2 class="text-danger mt-2">For More Jobs Please Create A Account</h2>
+    </marquee>
+    {% else %}
+        <h1 class="text-center mb-4 display-4">No Jobs Avaliable</h1>
+    {% endif %}
+
+
+</div>
+
+    {% endif %}
+<style>
+.job-rotation-container {
+    overflow: hidden;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.job-cards {
+    display: flex;
+    flex-direction: row;
+    animation: rotate-jobs 90s linear infinite;
+    width: 100%;
+}
+
+.job-card {
+    flex: 0 0 auto;
+    width: 40%;
+    margin-right: 15px;
+    transition: transform 1s;
+}
+
+#jobRotationContainer:hover .job-cards {
+    animation-play-state: paused;
+}
+
+@keyframes rotate-jobs {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    20% {
+        transform: translateX(-100%);
+    }
+    40% {
+        transform: translateX(-200%);
+    }
+    60% {
+        transform: translateX(-300%);
+    }
+    80% {
+        transform: translateX(-400%);
+    }
+}
+</style>
 {% endblock content %}
+
+ <!-- Bootstrap JS and jQuery (optional) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--<!DOCTYPE html>-->
+<!--{% load static %}-->
+<!--{% load crispy_forms_tags %}-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1">-->
+<!--    <title>{% block tittle %}Home Page {% endblock tittle %}</title>-->
+<!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.5.2/dist/css/bootstrap.min.css">-->
+
+
+<!--&lt;!&ndash;    <link rel="stylesheet" href="{% static 'css/styles.css' %}">&ndash;&gt;-->
+<!--&lt;!&ndash;    <link rel="stylesheet" href="{% static 'css/boot.css' %}">&ndash;&gt;-->
+
+<!--</head>-->
+<!--<body>-->
+<!--<nav class="navbar navbar-expand-lg navbar-light bg-dark">-->
+<!--    <a class="navbar-brand text-white" href="{% url 'Home' %}">Jobs</a>-->
+<!--    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">-->
+<!--      <span class="navbar-toggler-icon"></span>-->
+<!--    </button>-->
+<!--    {% if not user.is_authenticated %}-->
+<!--    <div class="collapse navbar-collapse" id="navbarNav">-->
+<!--      <ul class="navbar-nav ms-auto">-->
+<!--        <li class="nav-item">-->
+<!--          <a class="nav-link active with-line" aria-current="page" href="{% url 'Login' %}">-->
+<!--            <button class="btn btn-primary">Sign In</button>-->
+<!--          </a>-->
+<!--        </li>-->
+<!--        <li class="nav-item">-->
+<!--          <a class="nav-link active with-line" aria-current="page" href="{% url 'SignUpRecruiter' %}">-->
+<!--            <button class="btn btn-primary">Sign Up For Job Recruiter</button>-->
+<!--          </a>-->
+<!--        </li>-->
+<!--        <li class="nav-item">-->
+<!--          <a class="nav-link" href="{% url 'SignUpSeeker' %}">-->
+<!--            <button class="btn btn-primary">Sign Up For Job Seeker</button>-->
+<!--          </a>-->
+<!--        </li>-->
+<!--      </ul>-->
+<!--    </div>-->
+<!--    {% endif %}-->
+<!--    {% if user.is_authenticated %}-->
+<!--      {% if perms.app.can_view_recruiter_custom %}-->
+<!--      <ul class="navbar-nav">-->
+<!--          <li class="nav-item">-->
+<!--          <a class="nav-link" href="{% url 'create-job' %}">-->
+<!--            <button class="btn btn-primary">Post Job</button>-->
+<!--          </a>-->
+<!--        </li>-->
+<!--          <li class="nav-item">-->
+<!--          <a class="nav-link" href="{% url 'user-jobs' %}">-->
+<!--            <button class="btn btn-primary">Check Posted Jobs</button>-->
+<!--          </a>-->
+<!--        </li>-->
+<!--          {% endif %}'-->
+<!--          {% if perms.app.can_view_job_seekers_custom %}-->
+<!--          <li class="nav-item">-->
+<!--          <a class="nav-link" href="{% url 'show-jobs' %}">-->
+<!--            <button class="btn btn-primary">View Jobs</button>-->
+<!--          </a>-->
+<!--        </li>-->
+<!--          <li class="nav-item">-->
+<!--          <a class="nav-link" href="{% url 'job-applications-list' %}">-->
+<!--            <button class="btn btn-primary">Check Applied Applications</button>-->
+<!--          </a>-->
+<!--          </li>-->
+<!--            {% endif %}-->
+<!--      </ul>-->
+<!--      <ul class="navbar-nav ms-auto">-->
+<!--        <li class="nav-item">-->
+<!--          <div style="display: flex; flex-direction: row;">-->
+<!--              <div class="text-center text-lg-start me-3">-->
+<!--                  <div style="color: white; font-size: 25px"><a href="{% url 'Profile' %}">Profile</a>-->
+<!--                 </div>-->
+<!--              </div>-->
+
+<!--            <div class="text-center text-lg-start me-3">-->
+<!--              <div style="color: white; font-size: 25px">{{ request.user }}</div>-->
+<!--            </div>-->
+<!--              <div class="text-center text-lg-start me-3">-->
+<!--              <div style="color: white; font-size: 25px"><a href="{% url 'Logout' %}">Logout</a></div>-->
+<!--            </div>-->
+<!--&lt;!&ndash;            <div class="dropdown">&ndash;&gt;-->
+<!--&lt;!&ndash;              <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" style="background: none; border: none;">&ndash;&gt;-->
+<!--&lt;!&ndash;                <img src="{% static 'images/profile.png' %}" alt="Image" style="height: 4vh; cursor: pointer;">&ndash;&gt;-->
+<!--&lt;!&ndash;              </button>&ndash;&gt;-->
+<!--&lt;!&ndash;              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">&ndash;&gt;-->
+<!--&lt;!&ndash;                <a class="dropdown-item" href="{% url 'Logout' %}">Logout</a>&ndash;&gt;-->
+<!--&lt;!&ndash;              </div>&ndash;&gt;-->
+<!--&lt;!&ndash;            </div>&ndash;&gt;-->
+<!--          </div>-->
+<!--        </li>-->
+<!--      </ul>-->
+<!--    {% endif %}-->
+<!--</nav>-->
+
+<!--{% block conttent %}-->
+<!--{% if not user.is_authenticated %}-->
+
+
+
+<!--{% endif %}-->
+<!--<div class="container mt-5 shadow">-->
+<!--  <h1 class="text-center mb-4 display-4">All Jobs</h1>-->
+<!--  {% if jobs %}-->
+<!--    <div class="row">-->
+<!--      {% for job in jobs %}-->
+<!--        <div class="col-md-4">-->
+<!--          <div class="card mb-4">-->
+<!--            <div class="card-body">-->
+<!--              <h5 class="card-title text-center bg-primary text-white p-2">{{ job.job_title }}</h5>-->
+<!--              <h6 class="card-subtitle mb-2 text-muted">{{ job.company_name }}</h6>-->
+<!--              <p class="card-text"><strong>Location:</strong> {{ job.location }}</p>-->
+<!--              <p class="card-text"><strong>Job Type:</strong> {{ job.get_job_type_display }}</p>-->
+<!--              <p class="card-text"><strong>Industry:</strong> {{ job.get_industry_category_display }}</p>-->
+<!--              <p class="card-text"><strong>Salary:</strong> Rs.{{ job.salary }}</p>-->
+<!--              <p class="card-text"><strong>Requirements:</strong> {{ job.job_requirements }}</p>-->
+<!--              <p class="card-text"><strong>Education Requirements:</strong> {{ job.education_requirements }}</p>-->
+<!--              <p class="card-text"><strong>Experience Level:</strong> {{ job.experience_level }}</p>-->
+<!--              <p class="card-text"><strong>Contact Information:</strong> {{ job.contact_information }}</p>-->
+<!--              <p class="card-text"><strong>Benefits:</strong> {{ job.benefits }}</p>-->
+<!--              <p class="card-text"><strong>Skills and Qualities:</strong> {{ job.skills_and_qualities }}</p>-->
+<!--              <div class="d-grid gap-2">-->
+<!--                {% if job.id in applied_jobs %}-->
+<!--                  <span class="text-success"> Already Applied</span>-->
+<!--                {% else %}-->
+<!--                  <a href="{% url 'Login' %}" class="btn btn-primary">Apply</a>-->
+<!--                {% endif %}-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+
+<!--        </div>-->
+<!--      {% endfor %}-->
+<!--        <marquee behavior="" direction="left"-->
+<!--                 class="text-danger"><b>You Need To Create Account For More Jobs</b></marquee>-->
+<!--    </div>-->
+<!--</div>-->
+<!--  {% else %}-->
+<!--    <div class="alert alert-info" role="alert" style="background-color: #f3f3f3;">-->
+<!--      No jobs available.-->
+<!--    </div>-->
+<!--  {% endif %}-->
+<!--<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
+<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.5.2/dist/js/bootstrap.min.js"></script>-->
+<!--{% endblock conttent %}-->
+
+
+
+
+<!--</body>-->
+<!--</html>-->

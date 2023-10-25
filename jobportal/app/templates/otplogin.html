@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %} Login via OTP {% endblock title %}
+{% block content %}
+  <div class="container mt-5 shadow">
+    <h1 class="text-center mb-4 display-4">Login via OTP</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form|crispy }}
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </div>
+    </form>
+</div>
+
+
+{% endblock content %}

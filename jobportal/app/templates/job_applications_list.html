@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Job Applications{% endblock title %}
+{% block content %}
+  <div class="container">
+    <h1 class="my-4">Job Applications</h1>
+    <table class="table table-striped table-hover">
+      <thead class="table-dark">
+        <tr>
+          <th>Job Title</th>
+          <th>Company</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Phone Number</th>
+          <th>Resume</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for application in applications %}
+          <tr>
+            <td>{{ application.job.job_title }}</td>
+            <td>{{ application.job.company_name }}</td>
+            <td>{{ application.full_name }}</td>
+            <td>{{ application.email }}</td>
+            <td>{{ application.phone_number }}</td>
+            <td>
+              <a class="btn btn-primary" href="{{ application.resume.url }}" target="_blank">View Resume</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center">No job applications found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock content %}

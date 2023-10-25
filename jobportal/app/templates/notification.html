@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %} Notifications {% endblock title %}
+{% block content %}
+    <div class="container">
+        <h1 class="text-center">Notifications</h1>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">S.No.</th>
+                    <th scope="col">Job Title</th>
+                    <th scope="col">Notification</th>
+                    <th scope="col">Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notification in notifications %}
+                    <tr>
+                        <td class="border-right">{{ forloop.counter }}</td>
+                        <td class="border-right"><a href="{% url 'JobDetail' notification.job.id %}">{{notification.job.job_title }}</a></td>
+                        <td class="border-right">{{ notification.notify }}</td>
+                        <td>{{ notification.created_at }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+<style>
+        table {
+            border: 2px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+        }
+    </style>
+{% endblock content %}

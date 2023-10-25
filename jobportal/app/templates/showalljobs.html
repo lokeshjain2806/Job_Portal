@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %} Show All Jobs {% endblock title %}
+{% block content %}
+<div class="container mt-5">
+  <h1 class="text-center mb-4 display-4">All Jobs</h1>
+  {% if jobs %}
+    <form method="get" class="d-flex" action="/home/search/">
+           <input class="form-control me-2" type="search" placeholder="Search By Username" aria-label="username"
+                  name="job_title"
+                  id="job_title">
+           <button class="btn btn-warning" type="submit">Search</button>
+        </form>
+    <div class="row">
+      {% for job in jobs %}
+        <div class="col-md-4">
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title text-center bg-primary text-white p-2">{{ job.job_title }}</h5>
+              <p class="card-text"><strong>Company Name:</strong> {{ job.company_name }}</p>
+              <p class="card-text"><strong>Location:</strong> {{ job.location }}</p>
+              <p class="card-text"><strong>Job Type:</strong> {{ job.get_job_type_display }}</p>
+              <p class="card-text"><strong>Industry:</strong> {{ job.get_industry_category_display }}</p>
+              <p class="card-text"><strong>Salary:</strong> Rs.{{ job.salary }}</p>
+              <div class="d-grid gap-2">
+                {% if job.id in applied_jobs %}
+                  <span class="text-success"> Already Applied</span>
+                {% else %}
+                  <a href="{% url 'JobDetail' job_id=job.id %}" class="btn btn-primary">Intrested</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info" role="alert" style="background-color: #f3f3f3;">
+      No jobs available.
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}

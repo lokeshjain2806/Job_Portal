@@ -4,33 +4,40 @@
 {% block title %} Sign In {% endblock title %}
 
 {% block content %}
-<div class="container">
+<div class="container mt-5">
     <div class="row">
         <div class="col text-center">
-            <h1>Sign In</h1>
+            <h1 class="display-4">Sign In</h1>
         </div>
     </div>
-    <form action="" method="POST" class="shadow-lg p-5 mb-5 bg-body rounded" id="signup-form">
-        {% csrf_token %}
-        <div id="popup-user-message" class="popup-message">
-            {% if messages %}
-                <ul class="messages" style="list-style-type: none;">
-                    {% for message in messages %}
-                        <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>
-                            <span style="color: {% if message.tags == 'success' %}blue{% elif message.tags == 'error' %}red{% else %}black{% endif %};">
-                                {{ message }}
-                            </span>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form action="" method="POST" class="shadow p-4 mb-5 bg-white rounded" id="signup-form">
+                {% csrf_token %}
+                <div id="popup-user-message" class="popup-message">
+                    {% if messages %}
+                        <ul class="messages list-unstyled">
+                            {% for message in messages %}
+                                <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                                    <span style="color: {% if message.tags == 'success' %}blue{% elif message.tags == 'error' %}red{% else %}black{% endif %};">
+                                        {{ message }}
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+                {{ form|crispy }}
+                <div class="text-center">
+                    <button class="btn btn-primary" type="submit">Login</button>
+                    <br>
+                    <a href="{% url 'LoginViaOtp' %}" class="text-primary"><b>Login Via OTP</b></a>
+                    <br>
+                    <a href="{% url 'password-reset' %}" class="text-danger"><b>Forgot Password ?</b></a>
+                </div>
+            </form>
         </div>
-        {{ form|crispy }}
-        <div class="text-center">
-            <a href="{% url 'password-reset' %}" class="text-danger"><b>Forgot Password ?</b></a><br>
-            <input class="btn btn-primary" type="submit" value="Login">
-        </div>
-    </form>
+    </div>
 </div>
 
 {% endblock content %}
