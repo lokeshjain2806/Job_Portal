@@ -1,37 +1,133 @@
 {% extends "base.html" %}
 {% block title %} All Jobs{% endblock title %}
 {% block content %}
+<style>
+    .custom-edit-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.custom-edit-button:hover {
+    background-color: #0056b3;
+}
+
+@media (max-width: 768px) {
+    .custom-edit-button {
+        width: 100%;
+    }
+}
+        .custom-edit-button1 {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: red;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.custom-edit-button1:hover {
+    background-color: #red;
+}
+
+@media (max-width: 768px) {
+    .custom-edit-button1 {
+        width: 100%;
+    }
+}
+    .custom-button3 {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 166px;
+    height: 43px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.custom-button3:hover {
+    background-color: #0056b3;
+}
+
+@media (max-width: 768px) {
+    .custom-button3 {
+        width: 100%;
+    }
+}
+</style>
   <div class="container mt-4">
     <h2 class="text-center">Your Posted Jobs</h2>
     <div class="row justify-content-center">
       <div class="col-12">
         {% if jobs %}
-          <ul class="list-group">
-            {% for job in jobs %}
-              <li class="list-group-item">
-                <h3>{{ job.job_title }}</h3>
-                <p><strong>Company:</strong> {{ job.company_name }}</p>
-                <p><strong>Location:</strong> {{ job.location }}</p>
-                <p><strong>Job Type:</strong> {{ job.job_type }}</p>
-                <p><strong>Industry Category:</strong> {{ job.industry_category }}</p>
-                <p><strong>Salary:</strong> {{ job.salary }}</p>
-                <p><strong>Job Requirements:</strong> {{ job.job_requirements }}</p>
-                <p><strong>Education Requirements:</strong> {{ job.education_requirements }}</p>
-                <p><strong>Experience Level:</strong> {{ job.experience_level }}</p>
-                <p><strong>Contact Information:</strong> {{ job.contact_information }}</p>
-                <p><strong>Benefits:</strong> {{ job.benefits }}</p>
-                <p><strong>Skills and Qualities:</strong> {{ job.skills_and_qualities }}</p>
-
-                <div class="text-center mt-3">
-                    <a href="{% url 'edit-job' job.pk %}" class="btn btn-primary btn-sm mx-1">Edit</a>
-                    <a href="{% url 'delete-job' job.pk %}" class="btn btn-danger btn-sm mx-1">Delete</a>
-                    <a href="{% url 'job-applications' job.id %}" class="btn btn-success btn-sm mx-1">Show Applicants</a>
-                </div>
-              </li>
-            {% empty %}
-              <li class="list-group-item text-center">No jobs posted yet.</li>
-            {% endfor %}
-          </ul>
+          <div class="table-responsive table-responsive-sm">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Job Title</th>
+                  <th scope="col">Company</th>
+                  <th scope="col">Location</th>
+                  <th scope="col">Job Type</th>
+                  <th scope="col">Industry Category</th>
+                  <th scope="col">Salary</th>
+                  <th scope="col">Job Requirements</th>
+                  <th scope="col">Education Requirements</th>
+                  <th scope="col">Experience Level</th>
+                  <th scope="col">Contact Information</th>
+                  <th scope="col">Benefits</th>
+                  <th scope="col">Skills and Qualities</th>
+                  <th scope="col">Edit</th>
+                  <th scope="col">Delete</th>
+                  <th scope="col">Show Applicants</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for job in jobs %}
+                  <tr>
+                    <td>{{ job.job_title }}</td>
+                    <td>{{ job.company_name }}</td>
+                    <td>{{ job.location }}</td>
+                    <td>{{ job.job_type }}</td>
+                    <td>{{ job.industry_category }}</td>
+                    <td>{{ job.salary }}</td>
+                    <td>{{ job.job_requirements }}</td>
+                    <td>{{ job.education_requirements }}</td>
+                    <td>{{ job.experience_level }}</td>
+                    <td>{{ job.contact_information }}</td>
+                    <td>{{ job.benefits }}</td>
+                    <td>{{ job.skills_and_qualities }}</td>
+                    <td><a href="{% url 'edit-job' job.pk %}" class="custom-edit-button">Edit</a></td>
+                    <td><a href="{% url 'delete-job' job.pk %}" class="custom-edit-button1">Delete</a></td>
+                    <td><a href="{% url 'job-applications' job.id %}" class="custom-button3">Show Applicants</a></td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="13" class="text-center">No jobs posted yet.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         {% else %}
           <p class="mt-4 text-center">You haven't posted any jobs yet.</p>
         {% endif %}

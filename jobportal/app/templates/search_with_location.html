@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %} Search Results {% endblock title %}
+{% block content %}
+<style>
+            .custom-edit-button {
+            display: inline-block;
+            height:40px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .custom-edit-button:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 768px) {
+            .custom-edit-button {
+                width: 100%;
+            }
+        }
+    </style>
+  <div class="container mt-5">
+    <h1 class="text-center mb-4 display-4">Search Results</h1>
+    <form method="get" class="d-flex" action="{% url 'search' %}">
+      <input class="form-control me-2" type="search" placeholder="Search By Job Title" aria-label="job_title"
+             name="job_title" id="job_title" value="{{ query }}">
+      <button class="custom-edit-button" type="submit">Search</button>
+    </form>
+    {% if data %}
+      <section class="featured-job-area">
+                            <div class="container">
+                                <!-- job-content -->
+                                {% for job in data %}
+                                <div class="single-job-items mb-30">
+                                    <div class="job-items">
+                                        <div class="company-img">
+                                            {% if job.company_image %}
+                                                <a href="{% url 'JobDetail' job.id %}"><img src="{{ job.company_image.url }}" alt=""
+                                                                 class="img-fluid"
+                                                                 style="width: 100px; height: 90px;"></a>
+                                            {% else %}
+                                            <p>No Image Available</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="job-tittle job-tittle2">
+                                            <a href="{% url 'JobDetail' j"ob.id %}">
+                                                <h4>{{job.job_title}}</h4>
+                                            </a>
+                                            <ul>
+                                                <li>{{job.company_name}}</li>
+                                                <li><i class="fas fa-map-marker-alt"></i>{{job.location}}</li>
+                                                <li>Rs.{{job.salary}}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="items-link items-link2 f-right">
+                                        <a href="{% url 'JobDetail' job.id %}">{{job.job_type}}</a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                            </div>
+                        </section>
+    {% else %}
+      <div class="alert alert-info" role="alert" style="background-color: #f3f3f3;">
+        No jobs available for "{{ query }}".
+      </div>
+    {% endif %}
+  </div>
+{% endblock content %}

@@ -16,7 +16,8 @@
                 {% for notification in notifications %}
                     <tr>
                         <td class="border-right">{{ forloop.counter }}</td>
-                        <td class="border-right"><a href="{% url 'JobDetail' notification.job.id %}">{{notification.job.job_title }}</a></td>
+                        <td class="border-right"><a
+                                href="{% url 'JobDetail' notification.job.id %}" style="color:black;">{{ notification.job.job_title }}</a></td>
                         <td class="border-right">{{ notification.notify }}</td>
                         <td>{{ notification.created_at }}</td>
                     </tr>

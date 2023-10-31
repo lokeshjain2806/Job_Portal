@@ -1,6 +1,16 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import JobSeekerModel, RecruiterModel, Job, JobApplication
+from .models import JobSeekerModel, RecruiterModel, Job, JobApplication, MyUser, ContactModel, Location
+from django.contrib.auth.forms import SetPasswordForm
+
+
+
+class CustomPasswordResetConfirmForm(SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['new_password1'].help_text = ''
+        self.fields['new_password2'].help_text = ''
 
 
 class SignUpFormSeeker(forms.ModelForm):
@@ -18,17 +28,11 @@ class SignUpFormSeeker(forms.ModelForm):
         choices=JobSeekerModel.WORK_EXPERIENCE_CHOICES, widget=forms.Select(attrs={'class': 'form-control work-experience-label'}),
     )
     resume = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-control'}), required=True)
-    password1 = forms.CharField(label='Password',
-                                       widget=forms.PasswordInput(attrs={'class': 'form-control'})
-                                       )
-    password2 = forms.CharField(label='Confirm Password',
-                               widget=forms.PasswordInput(attrs={'class': 'form-control'})
-                               )
     profile_image = forms.ImageField(label='Profile Image', widget=forms.ClearableFileInput(attrs={'class': 'form-control-file'}), required=False)
 
     class Meta:
         model = JobSeekerModel
-        fields = ['profile_image', 'name', 'email', 'mobile_number', 'work_experience', 'resume', 'password1', 'password2']
+        fields = ['profile_image', 'name', 'email', 'mobile_number', 'work_experience', 'resume']
 
 
 class SignUpFormRecruiter(forms.ModelForm):
@@ -52,16 +56,11 @@ class SignUpFormRecruiter(forms.ModelForm):
         label='Mobile Number',
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
-    password1 = forms.CharField(label='Password',
-                                widget=forms.PasswordInput(attrs={'class': 'form-control'})
-                                )
-    password2 = forms.CharField(label='Confirm Password',
-                                widget=forms.PasswordInput(attrs={'class': 'form-control'})
-                                )
+    company_image = forms.ImageField(label='Company Logo', widget=forms.ClearableFileInput(attrs={'class': 'form-control-file'}), required=False)
 
     class Meta:
         model = RecruiterModel
-        fields = ['company_name', 'gst_no', 'gst_doc', 'email_id', 'mobile_number', 'password1', 'password2']
+        fields = ['company_image', 'company_name', 'gst_no', 'gst_doc', 'email_id', 'mobile_number']
 
     def save(self, commit=True):
         user = super(SignUpFormRecruiter, self).save(commit=False)
@@ -72,17 +71,17 @@ class SignUpFormRecruiter(forms.ModelForm):
         return user
 
 
-class LoginForm(forms.ModelForm):
-    email_id = forms.EmailField(label='Email Id',
-                                widget=forms.EmailInput(attrs={'class': 'form-control'})
+class LoginForm(forms.Form):
+    username = forms.CharField(label='Username',
+                                widget=forms.TextInput(attrs={'class': 'form-control'})
                                 )
     password = forms.CharField(label='Password',
                                widget=forms.PasswordInput(attrs={'class': 'form-control'})
                                )
 
     class Meta:
-        model = User
-        fields = ['email_id', 'password']
+        model = MyUser
+        fields = ['username', 'password']
 
 
 class JobForm(forms.ModelForm):
@@ -104,6 +103,7 @@ class JobForm(forms.ModelForm):
         'contact_information': forms.TextInput(attrs={'class': 'form-control'}),
         'benefits': forms.Textarea(attrs={'class': 'form-control'}),
         'skills_and_qualities': forms.Textarea(attrs={'class': 'form-control'}),
+        'company_image': forms.FileInput(attrs={'class': 'form-control'}),
     }
 
 
@@ -120,11 +120,56 @@ class OtpLoginForm(forms.ModelForm):
     email_id = forms.EmailField(label='Email Id',
                                 widget=forms.EmailInput(attrs={'class': 'form-control'})
                                 )
-    
+
     class Meta:
-        model = User
+        model = MyUser
         fields = ['email_id']
 
 
 class OtpVerificationForm(forms.Form):
     otp = forms.IntegerField(label='Enter Your Otp', widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+
+class RegistrationForm(UserCreationForm):
+    type = forms.ChoiceField(
+        widget=forms.RadioSelect,
+        choices=MyUser.REGISTRATION_CHOICES,
+    )
+
+    class Meta:
+        model = MyUser
+        fields = ['username', 'first_name', 'last_name', 'email', 'password1', 'password2']
+
+    def __init__(self, *args, **kwargs):
+        super(RegistrationForm, self).__init__(*args, **kwargs)
+
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
+
+        self.fields['username'].help_text = ''
+        self.fields['password1'].help_text = ''
+        self.fields['password2'].help_text = ''
+
+
+class ContactForm(forms.ModelForm):
+    class Meta:
+        model = ContactModel
+        fields = ['message', 'name', 'email', 'subject']
+        widgets = {
+            'message': forms.Textarea(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'subject': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+
+class LocationForm(forms.ModelForm):
+    location_name = forms.ModelChoiceField(
+        queryset=Location.objects.all(),
+        to_field_name='location_name',
+        empty_label="Select a Location"
+    )
+
+    class Meta:
+        model = Location
+        fields = ['location_name']

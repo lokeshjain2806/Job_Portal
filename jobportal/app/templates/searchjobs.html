@@ -1,44 +1,105 @@
 {% extends "base.html" %}
+{% load static %}
 {% load crispy_forms_tags %}
 {% block title %} Search Results {% endblock title %}
 {% block content %}
+<style>
+            .custom-edit-button {
+            display: inline-block;
+            height:40px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .custom-edit-button:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 768px) {
+            .custom-edit-button {
+                width: 100%;
+            }
+        }
+    </style>
   <div class="container mt-5">
     <h1 class="text-center mb-4 display-4">Search Results for "{{ query }}"</h1>
     <form method="get" class="d-flex" action="{% url 'search' %}">
       <input class="form-control me-2" type="search" placeholder="Search By Job Title" aria-label="job_title"
              name="job_title" id="job_title" value="{{ query }}">
-      <button class="btn btn-warning" type="submit">Search</button>
+      <button class="custom-edit-button" type="submit">Search</button>
     </form>
     {% if data %}
-      <div class="row">
-        {% for job in data %}
-          <div class="col-md-4">
-            <div class="card mb-4">
-              <div class="card-body">
-                <h5 class="card-title text-center bg-primary text-white p-2">{{ job.job_title }}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">{{ job.company_name }}</h6>
-                <p class="card-text"><strong>Location:</strong> {{ job.location }}</p>
-                <p class="card-text"><strong>Job Type:</strong> {{ job.get_job_type_display }}</p>
-                <p class="card-text"><strong>Industry:</strong> {{ job.get_industry_category_display }}</p>
-                <p class="card-text"><strong>Salary:</strong> Rs.{{ job.salary }}</p>
-                <p class="card-text"><strong>Requirements:</strong> {{ job.job_requirements }}</p>
-                <p class="card-text"><strong>Education Requirements:</strong> {{ job.education_requirements }}</p>
-                <p class="card-text"><strong>Experience Level:</strong> {{ job.experience_level }}</p>
-                <p class="card-text"><strong>Contact Information:</strong> {{ job.contact_information }}</p>
-                <p class="card-text"><strong>Benefits:</strong> {{ job.benefits }}</p>
-                <p class="card-text"><strong>Skills and Qualities:</strong> {{ job.skills_and_qualities }}</p>
-                <div class="d-grid gap-2">
-                  {% if job.id in applied_jobs %}
-                    <span class="text-success"> Already Applied</span>
-                  {% else %}
-                    <a href="{% url 'JobApplicationCreateView' job_id=job.id %}" class="btn btn-primary">Apply</a>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
+      <section class="featured-job-area">
+                            <div class="container">
+                                <!-- job-content -->
+                                {% for job in data %}
+                                <div class="single-job-items mb-30">
+                                    <div class="job-items">
+                                        <div class="company-img">
+                                            {% if job.company_image %}
+                                                <a href="{% url 'JobDetail' job.id %}"><img src="{{ job.company_image.url }}" alt=""
+                                                                 class="img-fluid"
+                                                                 style="width: 100px; height: 90px;"></a>
+                                            {% else %}
+                                            <p>No Image Available</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="job-tittle job-tittle2">
+                                            <a href="{% url 'JobDetail' job.id %}">
+                                                <h4>{{job.job_title}}</h4>
+                                            </a>
+                                            <ul>
+                                                <li>{{job.company_name}}</li>
+                                                <li><i class="fas fa-map-marker-alt"></i>{{job.location}}</li>
+                                                <li>Rs.{{job.salary}}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="items-link items-link2 f-right">
+                                        <a href="{% url 'JobDetail' job.id %}">{{job.job_type}}</a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                            </div>
+                        </section>
+<!--      <div class="row">-->
+<!--        {% for job in data %}-->
+<!--          <div class="col-md-4">-->
+<!--            <div class="card mb-4">-->
+<!--              <div class="card-body">-->
+<!--                <h5 class="card-title text-center bg-primary text-white p-2">{{ job.job_title }}</h5>-->
+<!--                <h6 class="card-subtitle mb-2 text-muted">{{ job.company_name }}</h6>-->
+<!--                <p class="card-text"><strong>Location:</strong> {{ job.location }}</p>-->
+<!--                <p class="card-text"><strong>Job Type:</strong> {{ job.get_job_type_display }}</p>-->
+<!--                <p class="card-text"><strong>Industry:</strong> {{ job.get_industry_category_display }}</p>-->
+<!--                <p class="card-text"><strong>Salary:</strong> Rs.{{ job.salary }}</p>-->
+<!--                <p class="card-text"><strong>Requirements:</strong> {{ job.job_requirements }}</p>-->
+<!--                <p class="card-text"><strong>Education Requirements:</strong> {{ job.education_requirements }}</p>-->
+<!--                <p class="card-text"><strong>Experience Level:</strong> {{ job.experience_level }}</p>-->
+<!--                <p class="card-text"><strong>Contact Information:</strong> {{ job.contact_information }}</p>-->
+<!--                <p class="card-text"><strong>Benefits:</strong> {{ job.benefits }}</p>-->
+<!--                <p class="card-text"><strong>Skills and Qualities:</strong> {{ job.skills_and_qualities }}</p>-->
+<!--                <div class="d-grid gap-2">-->
+<!--                  {% if job.id in applied_jobs %}-->
+<!--                    <span class="text-success"> Already Applied</span>-->
+<!--                  {% else %}-->
+<!--                    <a href="{% url 'JobApplicationCreateView' job_id=job.id %}" class="btn btn-primary">Apply</a>-->
+<!--                  {% endif %}-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        {% endfor %}-->
+<!--      </div>-->
     {% else %}
       <div class="alert alert-info" role="alert" style="background-color: #f3f3f3;">
         No jobs available for "{{ query }}".

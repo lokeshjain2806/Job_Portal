@@ -1,120 +1,150 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.views import PasswordResetView
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
+from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView
 import random
 from .forms import SignUpFormRecruiter, SignUpFormSeeker, LoginForm, JobForm, JobApplicationForm, OtpLoginForm, \
-    OtpVerificationForm
-from .models import JobSeekerModel, RecruiterModel, Job, JobApplication, Notification
+    OtpVerificationForm, RegistrationForm, ContactForm, LocationForm
+from .models import JobSeekerModel, RecruiterModel, Job, JobApplication, Notification, MyUser, Location, PostAboutModel
 
 
 # Create your views here.
 def Home(request):
-    if request.user.is_authenticated:
-        return redirect('LoginHome')
+    if request.method == 'POST':
+        pass
     else:
-        jobs = Job.objects.all()[:10]
-        return render(request, 'base.html', {'jobs': jobs})
+        if request.user.is_authenticated:
+            return redirect('LoginHome')
+        else:
+            jobs = Job.objects.all()[:4:-1]
+            form = LocationForm
+            about = PostAboutModel.objects.all()
+            return render(request, 'base.html', {'jobs': jobs, 'form': form, 'abouts': about})
+
+
+def counts(request):
+    jobs_count = Job.objects.count()
+    seekers_count = JobSeekerModel.objects.count()
+    recruiter_count = RecruiterModel.objects.count()
+    return {
+        'jobs_count': jobs_count,
+        'seekers_count': seekers_count,
+        'recruiter_count': recruiter_count,
+    }
 
 
 def About(request):
     return render(request, 'about.html')
 
 
+def job_list_not_auth(request, category=None):
+    if category:
+        jobs = Job.objects.filter(industry_category=category)[:10:-1]
+    else:
+        jobs = Job.objects.all()[:10:-1]
+    categories = Job.INDUSTRY_CATEGORIES
+    return render(request, 'job_listing_not_auth.html', {'jobs': jobs, 'categories': categories, 'selected_category': category})
+
+
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
 def LoginHome(request):
     return render(request, 'home.html')
 
 
+class Registration(View):
+    def get(self, request):
+        form =RegistrationForm
+        return render(request, 'registration.html', {'form': form})
+
+    def post(self, request):
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            a = MyUser.objects.filter(email=email).exists()
+            user_name = form.cleaned_data['username']
+            b = MyUser.objects.filter(username=user_name).exists()
+            if a:
+                messages.error(request, 'Email is already exist')
+                return render(request, 'registration.html', {'form': form})
+            if b:
+                messages.error(request, 'username is already exist')
+                return render(request, 'registration.html', {'form': form})
+            user = MyUser.objects.create_user(
+                username=user_name,
+                email=email,
+                first_name=form.cleaned_data['first_name'],
+                last_name=form.cleaned_data['last_name'],
+                password=form.cleaned_data['password1'],
+                type=form.cleaned_data['type'],
+            )
+            return redirect('Home')
+        else:
+            return render(request, 'registration.html', {'form': form})
+
+
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
 class SignUpSeekerView(View):
     def get(self, request):
-        form = SignUpFormSeeker
+        form = SignUpFormSeeker(initial={'email': request.user.email})
+        form.fields['email'].widget.attrs['readonly'] = 'readonly'
         return render(request, 'signupseeker.html', {'form': form})
 
     def post(self, request):
         form = SignUpFormSeeker(request.POST, request.FILES)
         if form.is_valid():
-            user_name = form.cleaned_data['email']
-            a = User.objects.filter(username=user_name).exists()
-            if a:
-                messages.error(request, 'username is already exist')
-                return render(request, 'signupseeker.html', {'form': form})
-            else:
-                password1 = form.cleaned_data['password1']
-                password2 = form.cleaned_data['password2']
-                if password1 != password2:
-                    messages.error(request, 'Please Enter Same Password')
-                    return render(request, 'signupseeker.html', {'form': form})
-                if 'profile_image' not in request.FILES:
-                    form.cleaned_data['profile_image'] = 'default_profile.png'
-                user = User.objects.create_user(
-                    username=form.cleaned_data['email'],
-                    password=password1,
-                    email=form.cleaned_data['email'],
-                )
-                seeker = JobSeekerModel(
-                    user=user,
-                    profile_image=form.cleaned_data['profile_image'],
-                    name=form.cleaned_data['name'],
-                    email=form.cleaned_data['email'],
-                    mobile_number=form.cleaned_data['mobile_number'],
-                    work_experience=form.cleaned_data['work_experience'],
-                    resume=form.cleaned_data['resume'],
-                )
-                seeker.save()
-                permission = Permission.objects.get(codename='can_view_job_seekers_custom')
-                user.user_permissions.add(permission)
+            if 'profile_image' not in request.FILES:
+                form.cleaned_data['profile_image'] = 'default_profile.png'
+            seeker = JobSeekerModel(
+                user=self.request.user,
+                profile_image=form.cleaned_data['profile_image'],
+                name=form.cleaned_data['name'],
+                email=form.cleaned_data['email'],
+                mobile_number=form.cleaned_data['mobile_number'],
+                work_experience=form.cleaned_data['work_experience'],
+                resume=form.cleaned_data['resume'],
+            )
+            seeker.save()
         else:
             for field, errors in form.errors.items():
                 print(f"Field: {field}, Errors: {', '.join(errors)}")
-        return redirect('Login')
+        return redirect('LoginHome')
 
 
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
 class SignUpRecruiterView(View):
     def get(self, request):
-        form = SignUpFormRecruiter
+        form = SignUpFormRecruiter(initial={'email_id': request.user.email})
+        form.fields['email_id'].widget.attrs['readonly'] = 'readonly'
         return render(request, 'signuprecruiter.html', {'form': form})
 
     def post(self, request):
         form = SignUpFormRecruiter(request.POST, request.FILES)
         if form.is_valid():
-            user_name = form.cleaned_data['email_id']
-            a = User.objects.filter(username=user_name).exists()
-            if a:
-                messages.error(request, 'username is already exist')
-                return render(request, 'signupseeker.html', {'form': form})
-            else:
-                password1 = form.cleaned_data['password1']
-                password2 = form.cleaned_data['password2']
-                if password1 != password2:
-                    messages.error(request, 'Password Not Match')
-                    return render(request, 'signupseeker.html', {'form': form})
-                user = User.objects.create_user(
-                    username=form.cleaned_data['email_id'],
-                    password=password1,
-                    email=form.cleaned_data['email_id'],
-                )
-                seeker = RecruiterModel(
-                    user=user,
-                    company_name=form.cleaned_data['company_name'],
-                    gst_no=form.cleaned_data['gst_no'],
-                    gst_doc=form.cleaned_data['gst_doc'],
-                    email_id=form.cleaned_data['email_id'],
-                    mobile_number=form.cleaned_data['mobile_number'],
-                )
-                seeker.save()
-                permission = Permission.objects.get(codename='can_view_recruiter_custom')
-                user.user_permissions.add(permission)
+            seeker = RecruiterModel(
+                user=self.request.user,
+                company_name=form.cleaned_data['company_name'],
+                gst_no=form.cleaned_data['gst_no'],
+                gst_doc=form.cleaned_data['gst_doc'],
+                email_id=form.cleaned_data['email_id'],
+                mobile_number=form.cleaned_data['mobile_number'],
+                company_image=form.cleaned_data['company_image'],
+            )
+            seeker.save()
         else:
             for field, errors in form.errors.items():
                 print(f"Field: {field}, Errors: {', '.join(errors)}")
-        return redirect('Login')
+        return redirect('LoginHome')
 
 
 class Login(View):
@@ -122,31 +152,42 @@ class Login(View):
         form = LoginForm
         return render(request, 'signin.html', {'form': form})
 
-    def post(self,request):
-        form = LoginForm(request.POST, request.FILES)
+    def post(self, request):
+        form = LoginForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data['email_id']
+            username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            user = authenticate(request, username=email, password=password)
+            user = authenticate(request, username=username, password=password)
             if user:
+                a = user.last_login
                 login(request, user)
-                return redirect('LoginHome')
+                if a is None:
+                    if self.request.user.type == 'Is JobSeeker':
+                        return redirect('SignUpSeeker')
+                    else:
+                        return redirect('SignUpRecruiter')
+                else:
+                    login(request, user)
+                    return redirect('LoginHome')
             else:
-                messages.error(request, 'Please Enter Valid Email Id And Password')
+                messages.error(request, 'Username Or Password is invalid')
                 return render(request, 'signin.html', {'form': form})
+        else:
+            return render(request, 'signin.html', {'form': form})
 
 
 class CustomPasswordResetView(PasswordResetView):
     def form_valid(self, form):
         try:
             email = form.cleaned_data['email']
-            user = User.objects.get(email=email)
+            user = MyUser.objects.get(email=email)
         except ObjectDoesNotExist:
             messages.error(self.request, 'User with this email does not exist.')
             return redirect('password-reset')
         return super().form_valid(form)
 
 
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
 class Profile(View):
     def get(self, request):
         user = request.user
@@ -154,95 +195,68 @@ class Profile(View):
         user_files_resume = None
         user_files_gst = None
         form =None
-        if user.has_perm('app.can_view_job_seekers_custom'):
-            job_seeker = JobSeekerModel.objects.filter(email=user).first()
+        company_image = None
+        if self.request.user.type == 'Is JobSeeker':
+            job_seeker = JobSeekerModel.objects.filter(email=user.email).first()
             form = SignUpFormSeeker(instance=job_seeker)
             form.fields['email'].widget.attrs['readonly'] = 'readonly'
-            user_files_resume = job_seeker.resume
+            user_files_resume = job_seeker.resume.url
             user_image = job_seeker.profile_image.url
-        elif user.has_perm('app.can_view_recruiter_custom'):
+        else:
             job_recruiter = RecruiterModel.objects.filter(email_id=user.email).first()
             form = SignUpFormRecruiter(instance=job_recruiter)
             form.fields['email_id'].widget.attrs['readonly'] = 'readonly'
             form.fields['company_name'].widget.attrs['readonly'] = 'readonly'
             form.fields['gst_no'].widget.attrs['readonly'] = 'readonly'
-            user_files_gst = job_recruiter.gst_doc
-        return render(request, 'profile.html', {'form': form, 'user_files_resume': user_files_resume, 'user_image': user_image, 'user_files_gst': user_files_gst})
+            user_files_gst = job_recruiter.gst_doc.url
+            company_image = job_recruiter.company_image.url
+            print(company_image)
+        return render(request, 'profile.html', {'form': form, 'user_files_resume': user_files_resume, 'user_image': user_image, 'user_files_gst': user_files_gst, 'company_image': company_image})
 
     def post(self, request):
         user = request.user
         user_image = None
-        if user.has_perm('app.can_view_job_seekers_custom'):
+        if self.request.user.type == 'Is JobSeeker':
             job_seeker = JobSeekerModel.objects.filter(email=user.email).first()
             form = SignUpFormSeeker(request.POST, request.FILES, instance=job_seeker)
             if form.is_valid():
-                password1 = form.cleaned_data['password1']
-                password2 = form.cleaned_data['password2']
-                if password1 != password2:
-                    messages.error(request, 'Passwords Do Not Match')
-                    return render(request, 'profile.html', {'form': form})
-                password = form.cleaned_data['password1']
-                email = form.cleaned_data['email']
-
                 seeker = JobSeekerModel.objects.get(user=user)
                 seeker.user = user
                 seeker.name = form.cleaned_data['name']
-                seeker.email = email
+                seeker.email = form.cleaned_data['email']
                 seeker.mobile_number = form.cleaned_data['mobile_number']
                 seeker.work_experience = form.cleaned_data['work_experience']
-                seeker.email_id = email
                 seeker.resume = form.cleaned_data['resume']
                 seeker.profile_image = form.cleaned_data['profile_image']
                 seeker.save()
-
-                user.set_password(password)
-                user.save()
-                updated_user = authenticate(username=user.username, password=password1)
-                if updated_user is not None:
-                    login(request, updated_user)
                 return redirect('LoginHome')
             else:
-                messages.error(request, 'Password Is Not Match')
                 return render(request, 'profile.html', {'form': form})
-        elif user.has_perm('app.can_view_recruiter_custom'):
+        else:
             job_recruiter = RecruiterModel.objects.filter(email_id=user.email).first()
             form = SignUpFormRecruiter(request.POST, request.FILES, instance=job_recruiter)
             if form.is_valid():
-                password1 = form.cleaned_data['password1']
-                password2 = form.cleaned_data['password2']
-                if password1 != password2:
-                    messages.error(request, 'Passwords Do Not Match')
-                    return render(request, 'profile.html', {'form': form})
-                password = form.cleaned_data['password1']
-                email = form.cleaned_data['email_id']
-
                 recruiter = RecruiterModel.objects.get(user=user)
                 recruiter.user = user
                 recruiter.company_name = form.cleaned_data['company_name']
-                recruiter.email_id = email
+                recruiter.email_id = form.cleaned_data['email_id']
                 recruiter.gst_no = form.cleaned_data['gst_no']
                 recruiter.gst_doc = form.cleaned_data['gst_doc']
                 recruiter.mobile_number = form.cleaned_data['mobile_number']
                 recruiter.save()
-
-                user.set_password(password)
-                user.save()
-                updated_user = authenticate(username=user.username, password=password1)
-                if updated_user is not None:
-                    login(request, updated_user)
                 return redirect('LoginHome')
             else:
-                messages.error(request, 'Password Is Not Match')
                 return render(request, 'profile.html', {'form': form})
 
 
-
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
 class UserLogout(View):
     def get(self, request):
         logout(request)
         return redirect('Home')
 
 
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
 class JobCreateView(CreateView):
     model = Job
     form_class = JobForm
@@ -252,20 +266,25 @@ class JobCreateView(CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         job = Job.objects.filter(user=self.request.user).first()
+        recuiter = self.request.user.job_recruiter
         recruiter_profile = self.request.user.job_recruiter
         company_name = recruiter_profile.company_name
+        company_image = recruiter_profile.company_image
         form.instance.company_name = company_name
+        form.instance.company_image = company_image
+        form.instance.recuiter = recuiter
         form.save()
         job_seekers = JobSeekerModel.objects.all()
         for job_seeker in job_seekers:
             notification = Notification.objects.create(
                 user=job_seeker.user,
-                job=job,
+                job=form.instance,
                 notify="New Job Alert",
             )
         return super().form_valid(form)
 
 
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
 class UserJobListView(ListView):
     model = Job
     template_name = 'user_jobs.html'
@@ -275,6 +294,7 @@ class UserJobListView(ListView):
         return Job.objects.filter(user=self.request.user).order_by('-id')
 
 
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
 class JobUpdateView(UpdateView):
     model = Job
     form_class = JobForm
@@ -289,12 +309,14 @@ class JobUpdateView(UpdateView):
         return form
 
 
-class JobDeleteView(LoginRequiredMixin, DeleteView):
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
+class JobDeleteView(DeleteView):
     model = Job
     template_name = 'job_confirm_delete.html'
     success_url = reverse_lazy('user-jobs')
 
 
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
 def ShowAllJobs(request):
     jobs = Job.objects.all()
     user = request.user
@@ -307,6 +329,7 @@ def ShowAllJobs(request):
     return render(request, 'showalljobs.html', context)
 
 
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
 class JobApplicationCreateView(CreateView):
     model = JobApplication
     form_class = JobApplicationForm
@@ -347,6 +370,8 @@ class JobApplicationCreateView(CreateView):
         return super().form_valid(form)
 
 
+
+@login_required(login_url="/signin/")
 def JobApplicationsListView(request):
     if request.user.is_authenticated:
         job_seeker = request.user.job_seeker
@@ -354,12 +379,14 @@ def JobApplicationsListView(request):
     return render(request, 'job_applications_list.html', {'applications': applications})
 
 
+@login_required(login_url="/signin/")
 def job_applications_view_admin(request, job_id):
     job = get_object_or_404(Job, pk=job_id)
     applications = JobApplication.objects.filter(job=job)
     return render(request, 'job_applications.html', {'job': job, 'applications': applications})
 
 
+@login_required(login_url="/signin/")
 def search(request):
     query = request.GET.get('job_title')
     data = Job.objects.filter(job_title__icontains=query)
@@ -376,8 +403,8 @@ class LoginViaOtpView(View):
     def post(self, request):
         form = OtpLoginForm(request.POST)
         if form.is_valid():
-            user_name = form.cleaned_data['email_id']
-            a = User.objects.filter(username=user_name).exists()
+            email = form.cleaned_data['email_id']
+            a = MyUser.objects.filter(email=email).exists()
             if a:
                 num_numbers = 6
                 random_numbers = []
@@ -385,18 +412,19 @@ class LoginViaOtpView(View):
                     random_1_digit = random.randint(1, 9)
                     random_numbers.append(str(random_1_digit))
                 otp = int(''.join(random_numbers))
-                request.session['email_id'] = user_name
+                request.session['email'] = email
                 request.session['expected_otp'] = otp
                 request.session.save()
                 subject = 'Login Verification'
                 message = f'Otp For Login: {otp}. Otp is valid for 10 minutes only.'
                 from_email = 'reset9546@gmail.com'
-                recipient_list = [user_name]
+                recipient_list = [email]
                 fail_silently = False
                 send_mail(subject, message, from_email, recipient_list, fail_silently)
                 return redirect('OtpVerification')
             else:
-                pass
+                messages.error(request, 'Email id Does Not Exist')
+                return render(request, 'otplogin.html',  {'form': form})
 
 
 class OtpVerification(View):
@@ -409,19 +437,21 @@ class OtpVerification(View):
         if form.is_valid():
             entered_otp = request.POST.get('otp')
             expected_otp = request.session.get('expected_otp')
-            user_email = request.session.get('email_id')
-            user = User.objects.get(username=user_email)
+            email = request.session.get('email')
+            user = MyUser.objects.get(email=email)
             if str(entered_otp) == str(expected_otp):
                 login(request, user)
                 return redirect('LoginHome')
             else:
+                messages.error(request, 'Please Enter Valid Otp')
                 return render(request, 'otpverification.html', {'form': form})
 
 
+@method_decorator(login_required(login_url="/signin/"), name='dispatch')
 class NotificationView(View):
     def get(self, request):
         user = self.request.user
-        notifications = Notification.objects.filter(user=user)
+        notifications = Notification.objects.filter(user=user).order_by('-id')
         notify_count = notifications.count()
         context = {
             'notifications': notifications,
@@ -437,3 +467,39 @@ class JobDetailView(View):
             'job': job,
         }
         return render(request, 'job_details.html', context)
+
+
+class ContactView(View):
+    template_name = 'contact.html'
+
+    def get(self, request):
+        form = ContactForm
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            contact = form.save()
+            subject = 'New Contact Form Submission'
+            message = f'Name: {contact.name}\nEmail: {contact.email}\nSubject: {contact.subject}\nMessage: {contact.message}'
+            from_email = 'reset9546@gmail.com'
+            recipient_list = ['lokeshjain2806@gmail.com']
+            send_mail(subject, message, from_email, recipient_list)
+
+            return redirect('Home')
+
+        return render(request, self.template_name, {'form': form})
+
+
+def search_with_location(request):
+    query = request.GET.get('job_title')
+    query1 = request.GET.get('location')
+    if query and not query1:
+        data = Job.objects.filter(Q(job_title__icontains=query))
+    elif not query and query1:
+        data = Job.objects.filter(Q(location__icontains=query1))
+    elif query and query1:
+        data = Job.objects.filter(Q(job_title__icontains=query) & Q(location__icontains=query1))
+    else:
+        data = Job.objects.all()
+    return render(request, 'search_with_location.html', {'data': data})
