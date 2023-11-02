@@ -15,6 +15,24 @@ class JobSeekerModel(models.Model):
         ('Fresher', 'Fresher'),
         ('Experienced', 'Experienced'),
     ]
+    INDUSTRY_CATEGORIES = [
+        ('Information Technology', 'Information Technology'),
+        ('Healthcare', 'Healthcare'),
+        ('Finance', 'Finance'),
+        ('Education', 'Education'),
+        ('Design & Creative', 'Design & Creative'),
+        ('Design & Development', 'Design & Development'),
+        ('Sales & Marketing', 'Sales & Marketing'),
+        ('Mobile Application', 'Mobile Application'),
+        ('Construction', 'Construction'),
+        ('Real Estate', 'Real Estate'),
+        ('Content Writer', 'Content Writer'),
+        ('Textile', 'Textile'),
+        ('Media and news', 'Media and news'),
+        ('Food processing', 'Food processing'),
+        ('Law', 'Law'),
+        ('Advertising', 'Advertising'),
+    ]
     user = models.OneToOneField(MyUser, on_delete=models.CASCADE, related_name='job_seeker')
     profile_image = models.ImageField(upload_to='profile_images/', verbose_name='Profile Image', default='default_profile.png')
     name = models.CharField(max_length=100, verbose_name='Full Name')
@@ -22,6 +40,7 @@ class JobSeekerModel(models.Model):
     mobile_number = models.BigIntegerField(verbose_name='Mobile Number')
     work_experience = models.CharField(max_length=20, choices=WORK_EXPERIENCE_CHOICES, verbose_name='Work Experience')
     resume = models.FileField(upload_to='resumes/', verbose_name='Resume')
+    category = models.CharField(max_length=50, choices=INDUSTRY_CATEGORIES, default='IT', null=True)
     created_at = models.DateField(auto_now=True)
     updated_at = models.DateField(null=True, blank=True)
 

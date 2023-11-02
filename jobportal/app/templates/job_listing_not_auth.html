@@ -44,7 +44,7 @@
                                     <div class="job-items">
                                         <div class="company-img">
                                             {% if job.company_image %}
-                                                <a href="#"><img src="{{ job.company_image.url }}" alt=""
+                                                <a href="{% url 'JobDetail' job.id %}"><img src="{{ job.company_image.url }}" alt=""
                                                                  class="img-fluid"
                                                                  style="width: 100px; height: 90px;"></a>
                                             {% else %}
@@ -52,7 +52,7 @@
                                             {% endif %}
                                         </div>
                                         <div class="job-tittle job-tittle2">
-                                            <a href="#">
+                                            <a href="{% url 'JobDetail' job.id %}">
                                                 <h4>{{job.job_title}}</h4>
                                             </a>
                                             <ul>
@@ -63,7 +63,7 @@
                                         </div>
                                     </div>
                                     <div class="items-link items-link2 f-right">
-                                        <a href="">{{job.job_type}}</a>
+                                        <a href="{% url 'JobDetail' job.id %}">{{job.job_type}}</a>
                                     </div>
                                 </div>
                                 {% endfor %}

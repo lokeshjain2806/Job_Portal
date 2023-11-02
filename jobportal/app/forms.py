@@ -1,9 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
 from .models import JobSeekerModel, RecruiterModel, Job, JobApplication, MyUser, ContactModel, Location
 from django.contrib.auth.forms import SetPasswordForm
-
 
 
 class CustomPasswordResetConfirmForm(SetPasswordForm):
@@ -29,10 +27,15 @@ class SignUpFormSeeker(forms.ModelForm):
     )
     resume = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-control'}), required=True)
     profile_image = forms.ImageField(label='Profile Image', widget=forms.ClearableFileInput(attrs={'class': 'form-control-file'}), required=False)
+    category = forms.ChoiceField(
+        label='Category',
+        choices=JobSeekerModel.INDUSTRY_CATEGORIES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
 
     class Meta:
         model = JobSeekerModel
-        fields = ['profile_image', 'name', 'email', 'mobile_number', 'work_experience', 'resume']
+        fields = ['profile_image', 'name', 'email', 'mobile_number', 'work_experience', 'resume', 'category']
 
 
 class SignUpFormRecruiter(forms.ModelForm):
@@ -107,12 +110,19 @@ class JobForm(forms.ModelForm):
     }
 
 
+class ReadOnlyEmailInput(forms.widgets.TextInput):
+    def render(self, name, value, attrs=None, renderer=None):
+        attrs['readonly'] = 'readonly'
+        return super().render(name, value, attrs, renderer)
+
+
 class JobApplicationForm(forms.ModelForm):
     class Meta:
         model = JobApplication
         fields = ['full_name', 'email', 'phone_number', 'address', 'resume']
         widgets = {
-            'job_seeker': forms.HiddenInput()
+            'job_seeker': forms.HiddenInput(),
+            'email': ReadOnlyEmailInput(),
         }
 
 

@@ -5,6 +5,19 @@
 {% block title %} Home {% endblock title %}
 
 {% block content %}
-
+<div class="slider-area ">
+            <!-- Mobile Menu -->
+            <div class="slider-active">
+                <div class="single-slider slider-height d-flex align-items-center"
+                     data-background="{% static 'img/hero/h1_hero.jpg' %}">
+                    <div class="container">
+                        <div class="row">
+                                <div class="hero__caption">
+                                    <h1>Welcome, <br> {{ user.first_name|title }} {{ user.last_name|title }}</h1>
+                                </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 {% endblock content %}

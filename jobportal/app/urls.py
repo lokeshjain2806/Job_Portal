@@ -5,10 +5,6 @@ from .views import Home, job_list_not_auth, ContactView, Registration, About, Lo
     LoginViaOtpView, OtpVerification, CustomPasswordResetView, JobCreateView, UserJobListView, JobUpdateView, \
     JobDeleteView, job_applications_view_admin, ShowAllJobs, JobDetailView, search, JobApplicationCreateView, \
     JobApplicationsListView, SignUpSeekerView, SignUpRecruiterView, Profile, NotificationView, search_with_location
-# SignUpSeekerView, SignUpRecruiterView, Login, CustomPasswordResetView, Profile, LoginHome, \
-#     UserLogout, JobCreateView, UserJobListView, JobUpdateView, JobDeleteView, ShowAllJobs, JobApplicationCreateView, \
-#     JobApplicationsListView, job_applications_view_admin, search, LoginViaOtpView, OtpVerification, , \
-#     NotificationView, JobDetailView,
 from django.contrib.auth.views import (
     PasswordResetDoneView,
     PasswordResetConfirmView,
@@ -49,6 +45,4 @@ urlpatterns = [
     path('otplogin/otpverification/', OtpVerification.as_view(), name='OtpVerification'),
     path('home/job_details/<int:job_id>/', JobDetailView.as_view(), name='JobDetail'),
     path('searchjob/', search_with_location, name='search_with_location'),
-
-
 ]

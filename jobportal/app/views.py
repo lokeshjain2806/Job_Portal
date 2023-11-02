@@ -2,8 +2,6 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import User, Permission
 from django.contrib.auth.views import PasswordResetView
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
@@ -16,7 +14,7 @@ from django.views.generic import CreateView, ListView, UpdateView, DeleteView
 import random
 from .forms import SignUpFormRecruiter, SignUpFormSeeker, LoginForm, JobForm, JobApplicationForm, OtpLoginForm, \
     OtpVerificationForm, RegistrationForm, ContactForm, LocationForm
-from .models import JobSeekerModel, RecruiterModel, Job, JobApplication, Notification, MyUser, Location, PostAboutModel
+from .models import JobSeekerModel, RecruiterModel, Job, JobApplication, Notification, MyUser, PostAboutModel
 
 
 # Create your views here.
@@ -57,7 +55,7 @@ def job_list_not_auth(request, category=None):
     return render(request, 'job_listing_not_auth.html', {'jobs': jobs, 'categories': categories, 'selected_category': category})
 
 
-@method_decorator(login_required(login_url="/signin/"), name='dispatch')
+@login_required(login_url="/signin/")
 def LoginHome(request):
     return render(request, 'home.html')
 
@@ -113,6 +111,7 @@ class SignUpSeekerView(View):
                 mobile_number=form.cleaned_data['mobile_number'],
                 work_experience=form.cleaned_data['work_experience'],
                 resume=form.cleaned_data['resume'],
+                category=form.cleaned_data['category'],
             )
             seeker.save()
         else:
@@ -228,6 +227,7 @@ class Profile(View):
                 seeker.work_experience = form.cleaned_data['work_experience']
                 seeker.resume = form.cleaned_data['resume']
                 seeker.profile_image = form.cleaned_data['profile_image']
+                seeker.category = form.cleaned_data['category']
                 seeker.save()
                 return redirect('LoginHome')
             else:
@@ -316,7 +316,7 @@ class JobDeleteView(DeleteView):
     success_url = reverse_lazy('user-jobs')
 
 
-@method_decorator(login_required(login_url="/signin/"), name='dispatch')
+@login_required(login_url="/signin/")
 def ShowAllJobs(request):
     jobs = Job.objects.all()
     user = request.user
@@ -341,6 +341,7 @@ class JobApplicationCreateView(CreateView):
         seeker = self.request.user.job_seeker
         initial['email'] = seeker.email
         initial['full_name'] = seeker.name
+        initial['phone_number'] = seeker.mobile_number
         return initial
 
     def form_valid(self, form):
@@ -368,7 +369,6 @@ class JobApplicationCreateView(CreateView):
         recipient_list = [job_seeker.email]
         send_mail(subject, message, from_email, recipient_list, fail_silently=False)
         return super().form_valid(form)
-
 
 
 @login_required(login_url="/signin/")
@@ -451,7 +451,11 @@ class OtpVerification(View):
 class NotificationView(View):
     def get(self, request):
         user = self.request.user
+        job_seeker = get_object_or_404(JobSeekerModel, user=user)
+        category = job_seeker.category
         notifications = Notification.objects.filter(user=user).order_by('-id')
+        if category:
+            notifications = notifications.filter(job__industry_category=category)
         notify_count = notifications.count()
         context = {
             'notifications': notifications,
@@ -503,3 +507,4 @@ def search_with_location(request):
     else:
         data = Job.objects.all()
     return render(request, 'search_with_location.html', {'data': data})
+
